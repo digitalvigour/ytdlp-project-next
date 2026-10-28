@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# yt-dlp Web Studio
 
-## Getting Started
+Local Next.js GUI for [yt-dlp](https://github.com/yt-dlp/yt-dlp). The UI spawns the system `yt-dlp` CLI on localhost and saves files under `./downloads`.
 
-First, run the development server:
+## Requirements
+
+- Node.js + pnpm
+- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) on `PATH` (or set `YTDLP_BIN`) — prefer **nightly** for YouTube
+- [`ffmpeg`](https://ffmpeg.org/) on `PATH` (or set `FFMPEG_LOCATION`)
+- [Deno](https://deno.land/) on `PATH` (YouTube JS challenges) — install: `curl -fsSL https://deno.land/install.sh | sh`
+
+The Studio injects `--js-runtimes` and puts `~/.deno/bin` on the child `PATH` automatically.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git submodule update --init --recursive
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Downloads
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Files are written to `./downloads` (gitignored). Override with `YTDLP_DOWNLOAD_DIR`.
 
-## Learn More
+Uploaded Netscape cookie files are stored under `./downloads/.cookies/`.
 
-To learn more about Next.js, take a look at the following resources:
+## Full setup (humans & AI agents)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See **[`docs/INSTALLATION.md`](docs/INSTALLATION.md)** — environment checks, yt-dlp/ffmpeg/Deno install, env vars, smoke tests, and common failures.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project layout
 
-## Deploy on Vercel
+- `components/studio/` — UI
+- `lib/ytdlp/` — types, CLI arg builder, runner, task store, client
+- `app/api/ytdlp/` — analyze / download / status / health / cookies (localhost only)
+- `vendor/yt-dlp/` — official engine submodule (reference only)
+- [`docs/ytdlp-reference.md`](docs/ytdlp-reference.md) — upstream flag notes
+- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — full install / agent setup guide
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Submodule
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+git submodule update --init --recursive
+```
+
+## Status polling
+
+The UI polls `/api/ytdlp/status` **only while** a download is `queued`/`downloading` (every 2s). Idle = no poll. Hard-refresh after pulling if an old HMR session left timers running.
